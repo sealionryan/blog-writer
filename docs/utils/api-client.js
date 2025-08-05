@@ -50,13 +50,27 @@ class ClaudeAPIClient {
                 throw new Error('Puter.js failed to load. Please check your internet connection and try again.');
             }
 
-            // Initialize Puter if it has an init method
-            if (typeof puter.init === 'function') {
-                await puter.init();
+            // Check if user is already authenticated
+            console.log('Checking authentication status...');
+            try {
+                // Try a test call without authentication first
+                const testResponse = await this.testConnection();
+                if (testResponse) {
+                    this.initialized = true;
+                    console.log('Claude API client initialized successfully (already authenticated)');
+                    return true;
+                }
+            } catch (error) {
+                console.log('Initial test failed:', error.message);
+                console.log('Authentication may be required');
             }
 
-            // Test connection with a simple request using direct API call
-            console.log('Testing Claude API connection...');
+            // If test failed, user needs to authenticate
+            console.log('Authentication required. Please sign in when prompted.');
+            await this.authenticateUser();
+
+            // Test connection after authentication
+            console.log('Testing Claude API connection after authentication...');
             const testResponse = await this.testConnection();
 
             if (testResponse) {
@@ -67,9 +81,24 @@ class ClaudeAPIClient {
                 throw new Error('Connection test failed - unable to reach Claude API');
             }
         } catch (error) {
-            console.error('Failed to initialize Claude API client:', error);
+            console.error('Failed to initialize Claude API client:', error.message || error);
             this.initialized = false;
             return false;
+        }
+    }
+
+    /**
+     * Authenticate user with Puter.js
+     */
+    async authenticateUser() {
+        try {
+            console.log('Prompting user for authentication...');
+            const authResult = await puter.auth.signIn();
+            console.log('Authentication successful:', authResult);
+            return true;
+        } catch (error) {
+            console.error('Authentication failed:', error.message || error);
+            throw new Error('User authentication required to access AI services');
         }
     }
 
@@ -78,20 +107,44 @@ class ClaudeAPIClient {
      */
     async testConnection() {
         try {
-            const testMessages = [
-                { role: 'user', content: 'Please respond with just "OK" to confirm connection.' }
-            ];
+            // Updated API call format for Puter.js - single prompt string instead of messages array
+            const testPrompt = 'Please respond with just "OK" to confirm connection.';
             
-            const response = await puter.ai.chat(testMessages, {
-                model: this.defaultModel,
-                max_tokens: 20,
-                temperature: 0
-            });
+            // Use simplified Puter.js API call format
+            const response = await puter.ai.chat(testPrompt);
             
-            console.log('Connection test response:', response);
-            return response && (response.includes('OK') || response.includes('ok') || response.length > 0);
+            console.log('Raw connection test response:', response);
+            console.log('Response type:', typeof response);
+            console.log('Response constructor:', response?.constructor?.name);
+            
+            // Extract string content from response
+            let responseText = '';
+            if (typeof response === 'string') {
+                responseText = response;
+            } else if (response && typeof response.content === 'string') {
+                responseText = response.content;
+            } else if (response && typeof response.message === 'string') {
+                responseText = response.message;
+            } else if (response && typeof response.text === 'string') {
+                responseText = response.text;
+            } else if (response && typeof response.toString === 'function') {
+                responseText = response.toString();
+            } else {
+                console.warn('Could not extract text from response:', response);
+                responseText = '';
+            }
+            
+            console.log('Extracted response text:', responseText);
+            console.log('Response text type:', typeof responseText);
+            
+            if (typeof responseText === 'string') {
+                return responseText.length > 0 && (responseText.includes('OK') || responseText.includes('ok') || responseText.length > 2);
+            } else {
+                console.error('responseText is not a string:', typeof responseText);
+                return false;
+            }
         } catch (error) {
-            console.error('Connection test failed:', error);
+            console.error('Connection test failed:', error.message || error);
             return false;
         }
     }
@@ -108,11 +161,9 @@ class ClaudeAPIClient {
      */
     async testModel(modelName) {
         try {
-            const testMessages = [
-                { role: 'user', content: 'Please respond with just "OK" to test model availability.' }
-            ];
+            const testPrompt = 'Please respond with just "OK" to test model availability.';
             
-            const response = await this.makeRequestWithModel(testMessages, modelName, { max_tokens: 10 });
+            const response = await this.makeRequestWithModel(testPrompt, modelName);
             const available = response && response.trim().includes('OK');
             
             this.modelCapabilities[modelName] = {
@@ -126,7 +177,7 @@ class ClaudeAPIClient {
             this.modelCapabilities[modelName] = {
                 available: false,
                 lastTested: Date.now(),
-                error: error.message
+                error: error.message || error
             };
             return false;
         }
@@ -161,13 +212,29 @@ class ClaudeAPIClient {
     }
 
     /**
+     * Convert messages array to single prompt string for Puter.js
+     */
+    convertMessagesToPrompt(messages) {
+        let prompt = '';
+        for (const message of messages) {
+            if (message.role === 'system') {
+                prompt += `System: ${message.content}\n\n`;
+            } else if (message.role === 'user') {
+                prompt += `User: ${message.content}\n\n`;
+            } else if (message.role === 'assistant') {
+                prompt += `Assistant: ${message.content}\n\n`;
+            }
+        }
+        return prompt.trim();
+    }
+
+    /**
      * Make a request with a specific model
      */
     async makeRequestWithModel(messages, model, options = {}) {
         const requestOptions = {
-            model: model,
-            max_tokens: options.max_tokens || 4000,
-            temperature: options.temperature || 0.7,
+            model: 'claude', // Puter.js uses simplified model names
+            stream: false,
             ...options
         };
 
@@ -183,18 +250,32 @@ class ClaudeAPIClient {
             try {
                 this.lastRequestTime = Date.now();
                 
-                const response = await puter.ai.chat(messages, requestOptions);
+                // Convert messages array to single prompt string
+                const prompt = Array.isArray(messages) ? this.convertMessagesToPrompt(messages) : messages;
                 
-                if (response && typeof response === 'string') {
-                    return response;
+                // Use simplified Puter.js API call (options seem to cause issues)
+                const response = await puter.ai.chat(prompt);
+                
+                // Extract string content from response
+                let responseText = '';
+                if (typeof response === 'string') {
+                    responseText = response;
                 } else if (response && response.content) {
-                    return response.content;
+                    responseText = response.content;
+                } else if (response && response.message) {
+                    responseText = response.message;
+                } else if (response && response.text) {
+                    responseText = response.text;
+                } else if (response && typeof response.toString === 'function') {
+                    responseText = response.toString();
                 } else {
-                    throw new Error('Invalid response format');
+                    throw new Error('Invalid response format - could not extract text content');
                 }
+                
+                return responseText;
             } catch (error) {
                 lastError = error;
-                console.warn(`API request attempt ${attempt} failed with model ${model}:`, error);
+                console.warn(`API request attempt ${attempt} failed:`, error.message || error);
                 
                 if (attempt < this.maxRetries) {
                     // Exponential backoff
@@ -207,7 +288,7 @@ class ClaudeAPIClient {
             }
         }
 
-        throw new Error(`API request failed after ${this.maxRetries} attempts with model ${model}: ${lastError?.message || 'Unknown error'}`);
+        throw new Error(`API request failed after ${this.maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
     }
 
     /**

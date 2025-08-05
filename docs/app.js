@@ -47,14 +47,29 @@ class BlogWorkflowApp {
             
             // Initialize API client with better error handling
             console.log('Initializing API client...');
-            const apiInitialized = await this.apiClient.initialize();
             
-            // Hide initialization status
-            this.elements.initializationStatus.classList.add('hidden');
-            
-            if (!apiInitialized) {
+            try {
+                const apiInitialized = await this.apiClient.initialize();
+                
+                // Hide initialization status
+                this.elements.initializationStatus.classList.add('hidden');
+                
+                if (!apiInitialized) {
+                    this.elements.submitBtn.disabled = false;
+                    this.showError('Failed to initialize AI connection. This could be due to:\n\n• Network connectivity issues\n• Puter.js service unavailable\n• Browser blocking third-party scripts\n• Authentication was cancelled\n\nPlease check your internet connection and try refreshing the page.');
+                    return;
+                }
+            } catch (error) {
+                // Hide initialization status
+                this.elements.initializationStatus.classList.add('hidden');
                 this.elements.submitBtn.disabled = false;
-                this.showError('Failed to initialize AI connection. This could be due to:\n\n• Network connectivity issues\n• Puter.js service unavailable\n• Browser blocking third-party scripts\n\nPlease check your internet connection and try refreshing the page.');
+                
+                if (error.message.includes('authentication')) {
+                    this.elements.authPrompt.classList.remove('hidden');
+                    this.elements.submitBtn.disabled = true;
+                } else {
+                    this.showError(`Failed to initialize AI connection: ${error.message}\n\nPlease refresh the page and try again.`);
+                }
                 return;
             }
             
@@ -65,6 +80,7 @@ class BlogWorkflowApp {
             
         } catch (error) {
             console.error('Failed to initialize app:', error);
+            this.elements.initializationStatus.classList.add('hidden');
             this.showError('Application failed to start. Please refresh the page.');
         }
     }
@@ -241,6 +257,37 @@ class BlogWorkflowApp {
 
     /**
      * Validate form inputs
+     */
+    /**
+     * Handle sign-in button click
+     */
+    async handleSignIn() {
+        try {
+            this.elements.authPrompt.classList.add('hidden');
+            this.elements.initializationStatus.classList.remove('hidden');
+            
+            // Reinitialize API client with authentication
+            const apiInitialized = await this.apiClient.initialize();
+            
+            this.elements.initializationStatus.classList.add('hidden');
+            
+            if (apiInitialized) {
+                this.elements.submitBtn.disabled = false;
+                console.log('Authentication successful, API client ready');
+            } else {
+                this.elements.authPrompt.classList.remove('hidden');
+                this.showError('Authentication failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Sign-in failed:', error);
+            this.elements.initializationStatus.classList.add('hidden');
+            this.elements.authPrompt.classList.remove('hidden');
+            this.showError('Authentication failed. Please try again.');
+        }
+    }
+
+    /**
+     * Input validation
      */
     validateInputs() {
         const title = this.elements.titleInput.value.trim();
