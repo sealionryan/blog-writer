@@ -9,21 +9,22 @@ class ClaudeAPIClient {
         this.rateLimitDelay = 1000; // 1 second between requests
         this.lastRequestTime = 0;
         this.maxRetries = 3;
-        this.defaultModel = 'claude'; // Simplified for Puter.js
+        this.defaultModel = 'claude-sonnet-4'; // Default to Sonnet for balanced performance
         
-        // Simplified model selection for Puter.js - they handle model routing
+        // Intelligent model selection for Puter.js using correct model names
         this.modelConfig = {
-            'content-planner': 'claude',
-            'orchestrator': 'claude',
-            'outline-writer': 'claude',
-            'reviewer': 'claude',
-            'brainstormer': 'claude',
-            'content-writer': 'claude'
+            'content-planner': 'claude-opus-4',    // High-reasoning: Complex input analysis
+            'orchestrator': 'claude-opus-4',       // High-reasoning: Strategic planning
+            'outline-writer': 'claude-opus-4',     // High-reasoning: Content structuring
+            'reviewer': 'claude-opus-4',           // High-reasoning: Quality assessment
+            'brainstormer': 'claude-sonnet-4',     // Standard: Creative generation
+            'content-writer': 'claude-sonnet-4'    // Standard: Content production
         };
         
-        // Fallback model hierarchy (simplified for Puter.js)
+        // Fallback model hierarchy for Puter.js
         this.fallbackModels = [
-            'claude'
+            'claude-sonnet-4',
+            'claude-opus-4'
         ];
         
         // Model capabilities tracking
@@ -108,8 +109,10 @@ class ClaudeAPIClient {
             // Updated API call format for Puter.js - single prompt string instead of messages array
             const testPrompt = 'Please respond with just "OK" to confirm connection.';
             
-            // Use simplified Puter.js API call format
-            const response = await puter.ai.chat(testPrompt);
+            // Use Puter.js API call with model specification
+            const response = await puter.ai.chat(testPrompt, {
+                model: this.defaultModel
+            });
             
             console.log('Raw connection test response:', response);
             console.log('Response type:', typeof response);
@@ -251,8 +254,10 @@ class ClaudeAPIClient {
                 // Convert messages array to single prompt string
                 const prompt = Array.isArray(messages) ? this.convertMessagesToPrompt(messages) : messages;
                 
-                // Use simplified Puter.js API call (options seem to cause issues)
-                const response = await puter.ai.chat(prompt);
+                // Use Puter.js API call with model specification
+                const response = await puter.ai.chat(prompt, {
+                    model: model
+                });
                 
                 // Extract string content from response using helper
                 const responseText = this.extractTextFromResponse(response);
