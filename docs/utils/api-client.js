@@ -332,13 +332,21 @@ class ClaudeAPIClient {
      */
     extractTextFromResponse(response) {
         if (Array.isArray(response) && response.length > 0) {
-            // Assume Claude-like [{role:'assistant', content:'...'}]
             const first = response[0];
+            // Handle [{role:'assistant', content:'...'}]
             if (first && typeof first.content === 'string') {
                 return first.content;
             }
-            // Fallback to join all stringifiable elements
-            return response.map(r => (typeof r.content === 'string' ? r.content : '')).join('\n');
+            // Handle [{message:{content:'...'}}]
+            if (first && first.message && typeof first.message.content === 'string') {
+                return first.message.content;
+            }
+            // Fallback: concatenate any stringifiable bits we can find
+            return response.map(r => {
+                if (typeof r.content === 'string') return r.content;
+                if (r.message && typeof r.message.content === 'string') return r.message.content;
+                return '';
+            }).join('\n');
         } else if (typeof response === 'string') {
             return response;
         } else if (response && typeof response.content === 'string') {
