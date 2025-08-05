@@ -168,12 +168,19 @@ Please provide the complete final outline in clean Markdown format, ready for th
             agentType: this.agentType
         });
 
+        // Ensure response is a string
+        const outlineText = typeof response === 'string' ? response : 
+                           (response?.content || response?.text || String(response) || '');
+
+        console.log('Outline response type:', typeof response);
+        console.log('Processed outline text:', outlineText);
+
         return {
-            finalOutline: response,
-            h2Count: this.countH2s(response),
-            h3Count: this.countH3s(response),
-            estimatedWordCount: this.estimateWordCount(response),
-            outlineStructure: this.parseOutlineStructure(response)
+            finalOutline: outlineText,
+            h2Count: this.countH2s(outlineText),
+            h3Count: this.countH3s(outlineText),
+            estimatedWordCount: this.estimateWordCount(outlineText),
+            outlineStructure: this.parseOutlineStructure(outlineText)
         };
     }
 

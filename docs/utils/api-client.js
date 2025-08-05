@@ -9,23 +9,21 @@ class ClaudeAPIClient {
         this.rateLimitDelay = 1000; // 1 second between requests
         this.lastRequestTime = 0;
         this.maxRetries = 3;
-        this.defaultModel = 'claude-3-5-sonnet-20241022';
+        this.defaultModel = 'claude'; // Simplified for Puter.js
         
-        // Intelligent model selection configuration
+        // Simplified model selection for Puter.js - they handle model routing
         this.modelConfig = {
-            'content-planner': 'claude-3-opus-20240229',    // High-reasoning: Complex input analysis
-            'orchestrator': 'claude-3-opus-20240229',       // High-reasoning: Strategic planning
-            'outline-writer': 'claude-3-opus-20240229',     // High-reasoning: Content structuring
-            'reviewer': 'claude-3-opus-20240229',           // High-reasoning: Quality assessment
-            'brainstormer': 'claude-3-5-sonnet-20241022',   // Standard: Creative generation
-            'content-writer': 'claude-3-5-sonnet-20241022'  // Standard: Content production
+            'content-planner': 'claude',
+            'orchestrator': 'claude',
+            'outline-writer': 'claude',
+            'reviewer': 'claude',
+            'brainstormer': 'claude',
+            'content-writer': 'claude'
         };
         
-        // Fallback model hierarchy
+        // Fallback model hierarchy (simplified for Puter.js)
         this.fallbackModels = [
-            'claude-3-5-sonnet-20241022',
-            'claude-3-opus-20240229',
-            'claude-3-haiku-20240307'
+            'claude'
         ];
         
         // Model capabilities tracking
@@ -256,22 +254,13 @@ class ClaudeAPIClient {
                 // Use simplified Puter.js API call (options seem to cause issues)
                 const response = await puter.ai.chat(prompt);
                 
-                // Extract string content from response
-                let responseText = '';
-                if (typeof response === 'string') {
-                    responseText = response;
-                } else if (response && response.content) {
-                    responseText = response.content;
-                } else if (response && response.message) {
-                    responseText = response.message;
-                } else if (response && response.text) {
-                    responseText = response.text;
-                } else if (response && typeof response.toString === 'function') {
-                    responseText = response.toString();
-                } else {
-                    throw new Error('Invalid response format - could not extract text content');
-                }
+                // Extract string content from response using helper
+                const responseText = this.extractTextFromResponse(response);
                 
+                if (!responseText) {
+                    throw new Error('Invalid or empty response format');
+                }
+
                 return responseText;
             } catch (error) {
                 lastError = error;
@@ -344,6 +333,26 @@ class ClaudeAPIClient {
         } catch (error) {
             console.error('Streaming request failed:', error);
             throw error;
+        }
+    }
+
+    /**
+     * Extract text string from API response object
+     */
+    extractTextFromResponse(response) {
+        if (typeof response === 'string') {
+            return response;
+        } else if (response && typeof response.content === 'string') {
+            return response.content;
+        } else if (response && typeof response.message === 'string') {
+            return response.message;
+        } else if (response && typeof response.text === 'string') {
+            return response.text;
+        } else if (response && typeof response.toString === 'function') {
+            return response.toString();
+        } else {
+            console.warn('Could not extract text from response:', response);
+            return String(response || '');
         }
     }
 
