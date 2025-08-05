@@ -124,6 +124,15 @@ class ClaudeAPIClient {
             console.log('Extracted response text:', responseText);
             console.log('Response text type:', typeof responseText);
             
+            // Debug: Show the actual array contents
+            if (Array.isArray(responseText)) {
+                console.log('Array contents:', responseText);
+                console.log('First element:', responseText[0]);
+                if (responseText[0] && responseText[0].message) {
+                    console.log('First element message:', responseText[0].message);
+                }
+            }
+            
             if (typeof responseText === 'string') {
                 return responseText.length > 0 && (responseText.includes('OK') || responseText.includes('ok') || responseText.length > 2);
             } else {
