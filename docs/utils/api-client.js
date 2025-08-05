@@ -118,22 +118,8 @@ class ClaudeAPIClient {
             console.log('Response type:', typeof response);
             console.log('Response constructor:', response?.constructor?.name);
             
-            // Extract string content from response
-            let responseText = '';
-            if (typeof response === 'string') {
-                responseText = response;
-            } else if (response && typeof response.content === 'string') {
-                responseText = response.content;
-            } else if (response && typeof response.message === 'string') {
-                responseText = response.message;
-            } else if (response && typeof response.text === 'string') {
-                responseText = response.text;
-            } else if (response && typeof response.toString === 'function') {
-                responseText = response.toString();
-            } else {
-                console.warn('Could not extract text from response:', response);
-                responseText = '';
-            }
+            // Extract string content from response using unified helper
+            const responseText = this.extractTextFromResponse(response);
             
             console.log('Extracted response text:', responseText);
             console.log('Response text type:', typeof responseText);
@@ -345,10 +331,20 @@ class ClaudeAPIClient {
      * Extract text string from API response object
      */
     extractTextFromResponse(response) {
-        if (typeof response === 'string') {
+        if (Array.isArray(response) && response.length > 0) {
+            // Assume Claude-like [{role:'assistant', content:'...'}]
+            const first = response[0];
+            if (first && typeof first.content === 'string') {
+                return first.content;
+            }
+            // Fallback to join all stringifiable elements
+            return response.map(r => (typeof r.content === 'string' ? r.content : '')).join('\n');
+        } else if (typeof response === 'string') {
             return response;
         } else if (response && typeof response.content === 'string') {
             return response.content;
+        } else if (response && response.message && typeof response.message.content === 'string') {
+            return response.message.content;
         } else if (response && typeof response.message === 'string') {
             return response.message;
         } else if (response && typeof response.text === 'string') {
