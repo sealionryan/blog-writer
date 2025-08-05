@@ -118,6 +118,21 @@ class ClaudeAPIClient {
             console.log('Response type:', typeof response);
             console.log('Response constructor:', response?.constructor?.name);
             
+            // Deep inspection of the response structure
+            if (response && typeof response === 'object') {
+                console.log('Response keys:', Object.keys(response));
+                if (response.message) {
+                    console.log('Response.message:', response.message);
+                    console.log('Response.message type:', typeof response.message);
+                    if (typeof response.message === 'object') {
+                        console.log('Response.message keys:', Object.keys(response.message));
+                        if (response.message.content) {
+                            console.log('Response.message.content:', response.message.content);
+                        }
+                    }
+                }
+            }
+            
             // Extract string content from response using unified helper
             const responseText = this.extractTextFromResponse(response);
             
@@ -131,6 +146,9 @@ class ClaudeAPIClient {
                 if (responseText[0] && responseText[0].message) {
                     console.log('First element message:', responseText[0].message);
                 }
+                // Force return false for now to prevent the string check error
+                console.error('responseText is still an array, forcing false');
+                return false;
             }
             
             if (typeof responseText === 'string') {
