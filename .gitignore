@@ -1,0 +1,54 @@
+# Node modules and package dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Claude settings and local configuration
+.claude/settings.local.json
+.claude/memory/
+.claude/logs/
+
+# Generated content and temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Output and build directories
+dist/
+build/
+out/
+
+# Test files and sample runs
+agents/tests/
+
+# Generated blog content (optional - remove if you want to track output)
+# *.md
+# !README.md
+# !CLAUDE.md
+# !agents/**/*.md

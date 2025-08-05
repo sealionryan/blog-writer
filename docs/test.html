@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Workflow Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Blog Workflow Test Suite</h1>
+    <p>This page tests the basic functionality of the blog workflow system.</p>
+    
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="test-results"></div>
+
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="utils/storage.js"></script>
+    <script src="utils/api-client.js"></script>
+    <script src="utils/output-manager.js"></script>
+    <script src="utils/workflow.js"></script>
+    <script src="agents/content-planner.js"></script>
+    <script src="agents/orchestrator.js"></script>
+    <script src="agents/brainstormer.js"></script>
+    <script src="agents/outline-writer.js"></script>
+    <script src="agents/content-writer.js"></script>
+    <script src="agents/reviewer.js"></script>
+
+    <script>
+        let testResults = [];
+
+        function addResult(test, status, message) {
+            testResults.push({ test, status, message });
+            displayResults();
+        }
+
+        function displayResults() {
+            const container = document.getElementById('test-results');
+            container.innerHTML = '<h2>Test Results</h2>' + 
+                testResults.map(result => 
+                    `<div class="test-result ${result.status}">
+                        <strong>${result.test}</strong>: ${result.message}
+                    </div>`
+                ).join('');
+        }
+
+        function clearResults() {
+            testResults = [];
+            document.getElementById('test-results').innerHTML = '';
+        }
+
+        async function runAllTests() {
+            clearResults();
+            addResult('Test Suite', 'info', 'Starting comprehensive tests...');
+
+            // Test 1: Check if Puter.js is loaded
+            try {
+                if (typeof puter !== 'undefined') {
+                    addResult('Puter.js Loading', 'pass', 'Puter.js loaded successfully');
+                } else {
+                    addResult('Puter.js Loading', 'fail', 'Puter.js not loaded');
+                }
+            } catch (error) {
+                addResult('Puter.js Loading', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 2: Check if classes are defined
+            const classes = [
+                'StorageManager', 'ClaudeAPIClient', 'WorkflowManager',
+                'ContentPlannerAgent', 'OrchestratorAgent', 'BrainstormerAgent',
+                'OutlineWriterAgent', 'ContentWriterAgent', 'ReviewerAgent'
+            ];
+
+            classes.forEach(className => {
+                if (typeof window[className] !== 'undefined') {
+                    addResult(`${className} Class`, 'pass', 'Class defined successfully');
+                } else {
+                    addResult(`${className} Class`, 'fail', 'Class not defined');
+                }
+            });
+
+            // Test 3: Test StorageManager
+            try {
+                const storage = new StorageManager();
+                const testId = 'test-workflow-' + Date.now();
+                const testData = { test: true, timestamp: Date.now() };
+                
+                storage.saveWorkflow(testId, testData);
+                const retrieved = storage.loadWorkflow(testId);
+                
+                if (retrieved && retrieved.test === true) {
+                    addResult('Storage Manager', 'pass', 'Save/load workflow data works');
+                    storage.deleteWorkflow(testId);
+                } else {
+                    addResult('Storage Manager', 'fail', 'Failed to save/retrieve data');
+                }
+            } catch (error) {
+                addResult('Storage Manager', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 4: Test API Client Initialization
+            try {
+                const apiClient = new ClaudeAPIClient();
+                const status = apiClient.getStatus();
+                
+                if (status.puterAvailable) {
+                    addResult('API Client', 'pass', 'API client initialized successfully');
+                } else {
+                    addResult('API Client', 'fail', 'Puter.js not available for API client');
+                }
+            } catch (error) {
+                addResult('API Client', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 5: Test Agent Instantiation
+            try {
+                const apiClient = new ClaudeAPIClient();
+                const contentPlanner = new ContentPlannerAgent(apiClient);
+                
+                if (contentPlanner.name === 'Content Planning Assistant') {
+                    addResult('Agent Instantiation', 'pass', 'Agents can be instantiated');
+                } else {
+                    addResult('Agent Instantiation', 'fail', 'Agent instantiation failed');
+                }
+            } catch (error) {
+                addResult('Agent Instantiation', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 6: Test Company Info
+            try {
+                if (typeof COMPANY_INFO !== 'undefined' && COMPANY_INFO.includes('Vegas Improv Power')) {
+                    addResult('Company Info', 'pass', 'Company information loaded correctly');
+                } else {
+                    addResult('Company Info', 'fail', 'Company information not found');
+                }
+            } catch (error) {
+                addResult('Company Info', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 7: Test Input Validation (Content Planner)
+            try {
+                const apiClient = new ClaudeAPIClient();
+                const planner = new ContentPlannerAgent(apiClient);
+                
+                const testInputs = {
+                    title: 'Test Title',
+                    keywords: 'test, keywords',
+                    context: ''
+                };
+                
+                const analysis = planner.analyzeInputs(testInputs);
+                
+                if (analysis.provided.includes('title') && analysis.missing.includes('context')) {
+                    addResult('Input Analysis', 'pass', 'Input analysis works correctly');
+                } else {
+                    addResult('Input Analysis', 'fail', 'Input analysis logic failed');
+                }
+            } catch (error) {
+                addResult('Input Analysis', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 8: Test Workflow Manager
+            try {
+                const storage = new StorageManager();
+                const apiClient = new ClaudeAPIClient();
+                const workflow = new WorkflowManager(apiClient, storage);
+                
+                if (workflow.steps.length === 10) {
+                    addResult('Workflow Manager', 'pass', 'Workflow manager configured with 10 steps');
+                } else {
+                    addResult('Workflow Manager', 'fail', `Expected 10 steps, got ${workflow.steps.length}`);
+                }
+            } catch (error) {
+                addResult('Workflow Manager', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 9: Test Output Manager
+            try {
+                const outputManager = new OutputManager();
+                const testInputs = {
+                    title: 'Test Blog Post',
+                    keywords: 'test, blog',
+                    context: 'Testing the output manager'
+                };
+                
+                const sessionId = outputManager.initializeSession(testInputs);
+                
+                if (sessionId && sessionId.includes('test-blog-post')) {
+                    addResult('Output Manager', 'pass', 'Output manager session initialized successfully');
+                } else {
+                    addResult('Output Manager', 'fail', 'Failed to initialize session');
+                }
+            } catch (error) {
+                addResult('Output Manager', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 10: Test API Client Model Selection
+            try {
+                const apiClient = new ClaudeAPIClient();
+                
+                const orchestratorModel = apiClient.getModelForAgent('orchestrator');
+                const brainstormerModel = apiClient.getModelForAgent('brainstormer');
+                
+                if (orchestratorModel === 'claude-3-opus-20240229' && brainstormerModel === 'claude-3-5-sonnet-20241022') {
+                    addResult('Model Selection', 'pass', 'Intelligent model selection configured correctly');
+                } else {
+                    addResult('Model Selection', 'fail', `Wrong models: orchestrator=${orchestratorModel}, brainstormer=${brainstormerModel}`);
+                }
+            } catch (error) {
+                addResult('Model Selection', 'fail', `Error: ${error.message}`);
+            }
+
+            // Test 11: Test Agent Model Configuration
+            try {
+                const apiClient = new ClaudeAPIClient();
+                const orchestrator = new OrchestratorAgent(apiClient);
+                const brainstormer = new BrainstormerAgent(apiClient);
+                
+                if (orchestrator.agentType === 'orchestrator' && brainstormer.agentType === 'brainstormer') {
+                    addResult('Agent Configuration', 'pass', 'Agents configured with proper model types');
+                } else {
+                    addResult('Agent Configuration', 'fail', 'Agent model configuration failed');
+                }
+            } catch (error) {
+                addResult('Agent Configuration', 'fail', `Error: ${error.message}`);
+            }
+
+            addResult('Test Suite', 'info', 'All tests completed!');
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

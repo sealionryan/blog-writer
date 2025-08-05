@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude-Powered Blog Workflow</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📰 Claude-Powered Blog Workflow</h1>
+            <p class="subtitle">Transform any topic into a publication-ready blog post with AI agents</p>
+        </header>
+
+        <main class="main">
+            <!-- Input Form -->
+            <section class="input-section">
+                <h2>Start Your Blog Creation</h2>
+                <p class="form-description">
+                    Provide at least one of the following. Our AI will help fill in any missing pieces:
+                </p>
+                
+                <form id="blog-form" class="blog-form">
+                    <div class="form-group">
+                        <label for="blog-title">Blog Post Title (optional)</label>
+                        <input 
+                            type="text" 
+                            id="blog-title" 
+                            name="blog-title" 
+                            placeholder="e.g., 5 Improv Techniques for Better Team Building"
+                            class="form-input"
+                        >
+                        <small class="form-help">The main title for your blog post</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="keywords">Target Keywords (optional)</label>
+                        <input 
+                            type="text" 
+                            id="keywords" 
+                            name="keywords" 
+                            placeholder="e.g., team building, improv, leadership, communication"
+                            class="form-input"
+                        >
+                        <small class="form-help">Comma-separated keywords for SEO optimization</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="context">Context & Background (optional)</label>
+                        <textarea 
+                            id="context" 
+                            name="context" 
+                            rows="4" 
+                            placeholder="e.g., Writing for corporate teams looking to improve collaboration. Focus on practical techniques they can use immediately. Professional but approachable tone."
+                            class="form-textarea"
+                        ></textarea>
+                        <small class="form-help">Audience, tone, purpose, and any specific requirements</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="allow-web" name="allow-web" checked>
+                            <span class="checkmark"></span>
+                            Enable web research for competitive analysis and trending topics
+                        </label>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="start-workflow">
+                        <span class="btn-icon">🚀</span>
+                        Start Blog Creation Workflow
+                    </button>
+                </form>
+
+                <div id="validation-message" class="validation-message hidden"></div>
+            </section>
+
+            <!-- Progress Section -->
+            <section class="progress-section hidden" id="progress-section">
+                <h2>Workflow Progress</h2>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                
+                <div class="steps-container" id="steps-container">
+                    <div class="step" data-step="0">
+                        <div class="step-number">0</div>
+                        <div class="step-content">
+                            <h3>Content Planning</h3>
+                            <p>Analyzing inputs and filling missing information</p>
+                            <div class="model-indicator" data-model="claude-3-opus-20240229">
+                                <span class="model-badge">Claude Opus 4</span>
+                                <span class="model-reason">High-reasoning</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Workflow Orchestration</h3>
+                            <p>Setting up the complete blog creation process</p>
+                            <div class="model-indicator" data-model="claude-3-opus-20240229">
+                                <span class="model-badge">Claude Opus 4</span>
+                                <span class="model-reason">Strategic planning</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Brainstorming</h3>
+                            <p>Generating 20 H2 headings + intro/conclusion options</p>
+                            <div class="model-indicator" data-model="claude-3-5-sonnet-20241022">
+                                <span class="model-badge">Claude Sonnet 3.5</span>
+                                <span class="model-reason">Creative generation</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Outline Creation</h3>
+                            <p>Selecting best H2s and creating structured outline</p>
+                            <div class="model-indicator" data-model="claude-3-opus-20240229">
+                                <span class="model-badge">Claude Opus 4</span>
+                                <span class="model-reason">Content structuring</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="4">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>H3 Suggestions</h3>
+                            <p>Adding subheadings where needed (0-5 per H2)</p>
+                            <div class="model-indicator" data-model="claude-3-5-sonnet-20241022">
+                                <span class="model-badge">Claude Sonnet 3.5</span>
+                                <span class="model-reason">Content production</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="5">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>Outline Finalization</h3>
+                            <p>Finalizing complete H2/H3 structure</p>
+                            <div class="model-indicator" data-model="claude-3-opus-20240229">
+                                <span class="model-badge">Claude Opus 4</span>
+                                <span class="model-reason">Content structuring</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="6">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h3>Content Writing</h3>
+                            <p>Writing sections, intro, and conclusion</p>
+                            <div class="model-indicator" data-model="claude-3-5-sonnet-20241022">
+                                <span class="model-badge">Claude Sonnet 3.5</span>
+                                <span class="model-reason">Content production</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="7">
+                        <div class="step-number">7</div>
+                        <div class="step-content">
+                            <h3>Content Review</h3>
+                            <p>Quality review and feedback generation</p>
+                            <div class="model-indicator" data-model="claude-3-opus-20240229">
+                                <span class="model-badge">Claude Opus 4</span>
+                                <span class="model-reason">Quality assessment</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="8">
+                        <div class="step-number">8</div>
+                        <div class="step-content">
+                            <h3>Revision</h3>
+                            <p>Implementing review feedback</p>
+                            <div class="model-indicator" data-model="claude-3-5-sonnet-20241022">
+                                <span class="model-badge">Claude Sonnet 3.5</span>
+                                <span class="model-reason">Content production</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="step" data-step="9">
+                        <div class="step-number">9</div>
+                        <div class="step-content">
+                            <h3>Final Compilation</h3>
+                            <p>Generating final blog post and metadata</p>
+                            <div class="model-indicator" data-model="claude-3-opus-20240229">
+                                <span class="model-badge">Claude Opus 4</span>
+                                <span class="model-reason">Strategic planning</span>
+                            </div>
+                            <div class="step-output hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section hidden" id="results-section">
+                <h2>Your Blog Post is Ready! 🎉</h2>
+                
+                <div class="results-header">
+                    <h3 id="final-title">Blog Post Title</h3>
+                    <div class="results-meta">
+                        <span class="word-count" id="word-count">0 words</span>
+                        <span class="reading-time" id="reading-time">0 min read</span>
+                    </div>
+                </div>
+                
+                <div class="results-content">
+                    <div class="blog-preview" id="blog-preview">
+                        <!-- Final blog content will be rendered here -->
+                    </div>
+                </div>
+                
+                <div class="results-actions">
+                    <button class="action-btn primary" id="download-complete">
+                        <span class="btn-icon">📦</span>
+                        Download Complete Package
+                    </button>
+                    <button class="action-btn secondary" id="download-markdown">
+                        <span class="btn-icon">📄</span>
+                        Download Markdown
+                    </button>
+                    <button class="action-btn secondary" id="download-metadata">
+                        <span class="btn-icon">📊</span>
+                        Download Metadata
+                    </button>
+                    <button class="action-btn secondary" id="copy-to-clipboard">
+                        <span class="btn-icon">📋</span>
+                        Copy to Clipboard
+                    </button>
+                    <button class="action-btn secondary" id="start-new">
+                        <span class="btn-icon">🔄</span>
+                        Create Another Post
+                    </button>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section class="error-section hidden" id="error-section">
+                <h2>⚠️ Something Went Wrong</h2>
+                <div class="error-content">
+                    <p id="error-message">An unexpected error occurred during the workflow.</p>
+                    <button class="action-btn primary" id="retry-workflow">
+                        <span class="btn-icon">🔄</span>
+                        Retry Workflow
+                    </button>
+                    <button class="action-btn secondary" id="back-to-start">
+                        <span class="btn-icon">⬅️</span>
+                        Back to Start
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>Powered by Claude AI • Built with the Claude Sub-Agents Framework</p>
+            <p><small>Made with ❤️ for Vegas Improv Power - "Improv for Being a Human®"</small></p>
+        </footer>
+    </div>
+
+    <script src="utils/storage.js"></script>
+    <script src="utils/api-client.js"></script>
+    <script src="utils/output-manager.js"></script>
+    <script src="utils/workflow.js"></script>
+    <script src="agents/content-planner.js"></script>
+    <script src="agents/orchestrator.js"></script>
+    <script src="agents/brainstormer.js"></script>
+    <script src="agents/outline-writer.js"></script>
+    <script src="agents/content-writer.js"></script>
+    <script src="agents/reviewer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

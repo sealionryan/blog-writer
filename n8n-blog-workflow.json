@@ -1,0 +1,354 @@
+{
+  "name": "Blog Creation Workflow - 9-Step Process",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "search_term",
+              "value": ""
+            },
+            {
+              "name": "context", 
+              "value": ""
+            },
+            {
+              "name": "keywords",
+              "value": ""
+            },
+            {
+              "name": "allow_web",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "step1-initiation",
+      "name": "Step 1: Project Initiation",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [200, 200],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229",
+        "text": "You are the Blog Workflow Orchestrator. Your role is to manage the complete blog creation workflow.\n\nInput parameters:\n- search_term: {{ $json.search_term }}\n- context: {{ $json.context }}\n- keywords: {{ $json.keywords }}\n- allow_web: {{ $json.allow_web }}\n\nAnalyze the requirements and create a project brief with:\n1. Strategic direction and goals\n2. Target audience analysis\n3. Content strategy recommendations\n4. Quality standards and brand guidelines\n5. SEO optimization targets\n\nProvide a structured project brief that will guide all subsequent agents.",
+        "options": {}
+      },
+      "id": "orchestrator-brief",
+      "name": "Orchestrator: Create Project Brief",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 200],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229", 
+        "text": "You are the Blog Brainstormer agent. Your role is to generate H2 headings and content ideas.\n\nProject Brief: {{ $json.text }}\nSearch Term: {{ $('Step 1: Project Initiation').item.json.search_term }}\n\nGenerate exactly:\n- 20 main H2 headings for article content (focus on unique angles and topical authority)\n- 3 intro H2 options (these are meta-descriptions only, NOT for the final blog)\n- 3 conclusion H2 options (these are meta-descriptions only, NOT for the final blog)\n\nIMPORTANT: Do NOT browse the web. Focus on original, creative angles to avoid copycat content.\n\nFormat your response as:\n## Intro Ideas\n[3 options]\n\n## Candidate H2s\n[20 numbered options]\n\n## Conclusion Ideas\n[3 options]",
+        "options": {}
+      },
+      "id": "step2-brainstorm",
+      "name": "Step 2: H2 Generation (Brainstormer)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 400],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229",
+        "text": "You are the Blog Outline Writer agent. Your role is to create structured content outlines.\n\nProject Brief: {{ $('Orchestrator: Create Project Brief').item.json.text }}\nBrainstormed H2s: {{ $json.text }}\n\nFrom the 20 candidate H2s, select 5-10 H2s that will create the best article flow.\n\nIMPORTANT RULES:\n- NEVER include the intro or conclusion H2s in your final selection\n- Order the selected H2s for logical story progression\n- Focus on creating a complete narrative arc\n- Ensure comprehensive topic coverage\n\nCreate a raw Markdown outline with:\n# [Working Title]\n\n## [Selected H2 #1]\n## [Selected H2 #2]\n## [Selected H2 #3]\n[etc.]\n\nExplain your selection rationale and ordering logic.",
+        "options": {}
+      },
+      "id": "step3-outline-draft",
+      "name": "Step 3: Outline Creation (Outline Writer)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 600],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229",
+        "text": "You are the Blog Content Writer agent. Your role is to suggest H3 subheadings when needed.\n\nProject Brief: {{ $('Orchestrator: Create Project Brief').item.json.text }}\nRaw Outline: {{ $json.text }}\n\nReview each H2 section and suggest 0-5 H3s per H2 ONLY when essential for comprehensive coverage.\n\nIMPORTANT GUIDELINES:\n- Include H3s only when absolutely necessary\n- 0 H3s is perfectly acceptable for self-contained H2s\n- Avoid redundant or obvious sub-headings\n- Quality over quantity - fewer is better than fluff\n\nFor each H2, provide:\n## [H2 Title]\n**H3 Suggestions:** [0-5 H3s or \"None needed\"]\n**Rationale:** [Why these H3s are essential or why none are needed]",
+        "options": {}
+      },
+      "id": "step4-h3-suggestions",
+      "name": "Step 4: H3 Suggestions (Content Writer)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 800],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229",
+        "text": "You are the Blog Outline Writer agent. Your role is to finalize the outline structure.\n\nProject Brief: {{ $('Orchestrator: Create Project Brief').item.json.text }}\nRaw Outline: {{ $('Step 3: Outline Creation (Outline Writer)').item.json.text }}\nH3 Suggestions: {{ $json.text }}\n\nCreate the final structured outline incorporating approved H3 suggestions.\n\nProvide a complete Markdown outline:\n# [Final Title]\n\n## [H2 #1]\n### [H3 #1.1] (if needed)\n### [H3 #1.2] (if needed)\n\n## [H2 #2]\n### [H3 #2.1] (if needed)\n\n[Continue pattern...]\n\nEnsure logical flow and content progression throughout.",
+        "options": {}
+      },
+      "id": "step5-final-outline",
+      "name": "Step 5: Final Outline (Outline Writer)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 1000],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229",
+        "text": "You are the Blog Content Writer agent. Your role is to write engaging, SEO-optimized content.\n\nProject Brief: {{ $('Orchestrator: Create Project Brief').item.json.text }}\nFinal Outline: {{ $json.text }}\nBrainstormed Ideas: {{ $('Step 2: H2 Generation (Brainstormer)').item.json.text }}\n\nWrite the complete blog post following this sequence:\n1. Write ALL main H2 sections first (with their H3 subsections)\n2. Write the introduction last (using intro ideas as meta-description)\n3. Write the conclusion last (using conclusion ideas as meta-description)\n\nContent Requirements:\n- Target 1,500-2,500 words total\n- Maintain 1-2% keyword density\n- Create engaging, actionable content\n- Include natural internal linking opportunities\n- Write in brand voice (professional yet approachable)\n\nProvide the complete blog post in Markdown format.",
+        "options": {}
+      },
+      "id": "step6-content-writing",
+      "name": "Step 6: Content Writing (Content Writer)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 1200],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229",
+        "text": "You are the Blog Reviewer agent. Your role is to review and provide optimization feedback.\n\nProject Brief: {{ $('Orchestrator: Create Project Brief').item.json.text }}\nCompleted Blog Post: {{ $json.text }}\n\nConduct a comprehensive review covering:\n\n**Content Quality:**\n- Headline effectiveness and keyword integration\n- Introduction hook and value promise\n- Content structure and logical flow\n- Engagement elements and readability\n- Conclusion strength and call-to-action\n\n**SEO Optimization:**\n- Keyword density and natural integration\n- Meta title and description optimization\n- Internal linking opportunities\n- Technical SEO elements\n- Featured snippet optimization\n\n**Grammar & Style:**\n- Grammar and spelling accuracy\n- Tone consistency and brand voice\n- Sentence structure and readability\n- Formatting and visual hierarchy\n\nProvide specific, actionable feedback with:\n1. Issues identified\n2. Recommended improvements\n3. Priority level (High/Medium/Low)\n4. Overall readiness score (1-10)",
+        "options": {}
+      },
+      "id": "step7-review",
+      "name": "Step 7: Review & Feedback (Reviewer)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 1400],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229",
+        "text": "You are the Blog Content Writer agent. Your role is to revise content based on feedback.\n\nOriginal Blog Post: {{ $('Step 6: Content Writing (Content Writer)').item.json.text }}\nReviewer Feedback: {{ $json.text }}\nProject Brief: {{ $('Orchestrator: Create Project Brief').item.json.text }}\n\nRevise the blog post addressing all feedback systematically:\n\n1. Address all High priority issues\n2. Implement Medium priority improvements\n3. Consider Low priority suggestions\n4. Optimize SEO elements\n5. Enhance engagement factors\n6. Ensure publication readiness\n\nProvide the revised blog post in complete Markdown format, ready for publication.",
+        "options": {}
+      },
+      "id": "step8-revision",
+      "name": "Step 8: Content Revision (Content Writer)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 1600],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-sonnet-20240229",
+        "text": "You are the Blog Workflow Orchestrator. Your role is to finalize and compile the complete workflow output.\n\nFinal Blog Post: {{ $json.text }}\nProject Brief: {{ $('Orchestrator: Create Project Brief').item.json.text }}\nWorkflow Data: All previous steps completed successfully\n\nCreate two outputs:\n\n1. **FINAL BLOG POST** (ready for publication)\n2. **METADATA FILE** containing:\n   - Complete workflow information\n   - All agent inputs and outputs\n   - Quality metrics and scores\n   - SEO optimization data\n   - Publication checklist\n   - Performance tracking setup\n\nPerform final quality assurance and approve for publication.",
+        "options": {}
+      },
+      "id": "step9-compilation",
+      "name": "Step 9: Final Compilation (Orchestrator)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [400, 1800],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Step 1: Project Initiation').item.json.search_term.replace(/\\s+/g, '-').toLowerCase() }}.md",
+        "data": "={{ $json.text.split('**METADATA FILE**')[0] }}",
+        "options": {}
+      },
+      "id": "save-blog-post",
+      "name": "Save Blog Post",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [600, 1700],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Step 1: Project Initiation').item.json.search_term.replace(/\\s+/g, '-').toLowerCase() }}-metadata.md",
+        "data": "={{ $json.text.split('**METADATA FILE**')[1] || 'Metadata not found' }}",
+        "options": {}
+      },
+      "id": "save-metadata",
+      "name": "Save Metadata",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [600, 1900],
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "content": "# Perplexity API Integration Point\n\nThis node is positioned after Step 2 (H2 Generation) and before Step 3 (Outline Creation).\n\nUse this to:\n1. Query Perplexity API for academic and medical references\n2. Enhance H2 topics with authoritative sources\n3. Add credibility and depth to content strategy\n\nInput: {{ $('Step 2: H2 Generation (Brainstormer)').item.json.text }}\nOutput: Enhanced H2s with academic/medical references",
+        "height": 80,
+        "width": 150
+      },
+      "id": "perplexity-integration-point",
+      "name": "Perplexity API Integration Point",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [650, 400],
+      "executeOnce": false,
+      "alwaysOutputData": false
+    }
+  ],
+  "connections": {
+    "Step 1: Project Initiation": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator: Create Project Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator: Create Project Brief": {
+      "main": [
+        [
+          {
+            "node": "Step 2: H2 Generation (Brainstormer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2: H2 Generation (Brainstormer)": {
+      "main": [
+        [
+          {
+            "node": "Step 3: Outline Creation (Outline Writer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3: Outline Creation (Outline Writer)": {
+      "main": [
+        [
+          {
+            "node": "Step 4: H3 Suggestions (Content Writer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 4: H3 Suggestions (Content Writer)": {
+      "main": [
+        [
+          {
+            "node": "Step 5: Final Outline (Outline Writer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 5: Final Outline (Outline Writer)": {
+      "main": [
+        [
+          {
+            "node": "Step 6: Content Writing (Content Writer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 6: Content Writing (Content Writer)": {
+      "main": [
+        [
+          {
+            "node": "Step 7: Review & Feedback (Reviewer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 7: Review & Feedback (Reviewer)": {
+      "main": [
+        [
+          {
+            "node": "Step 8: Content Revision (Content Writer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 8: Content Revision (Content Writer)": {
+      "main": [
+        [
+          {
+            "node": "Step 9: Final Compilation (Orchestrator)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 9: Final Compilation (Orchestrator)": {
+      "main": [
+        [
+          {
+            "node": "Save Blog Post",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "blog-creation",
+      "name": "Blog Creation"
+    },
+    {
+      "id": "ai-workflow",
+      "name": "AI Workflow"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-08-04T00:00:00.000Z",
+  "versionId": "1"
+}

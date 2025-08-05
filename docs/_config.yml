@@ -1,0 +1,26 @@
+# GitHub Pages Configuration
+title: "Claude-Powered Blog Workflow"
+description: "Transform any topic into a publication-ready blog post with AI agents"
+url: "https://yourusername.github.io"
+baseurl: "/blog-writer"
+
+# Theme
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - "*.md"
+
+# Include specific files
+include:
+  - index.html
+  - styles.css
+  - app.js
+  - agents/
+  - utils/
