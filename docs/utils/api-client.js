@@ -146,8 +146,8 @@ class ClaudeAPIClient {
                 if (responseText[0] && responseText[0].message) {
                     console.log('First element message:', responseText[0].message);
                 }
-                // Force return false for now to prevent the string check error
-                console.error('responseText is still an array, forcing false');
+                // Should not reach here anymore with proper extraction
+                console.error('responseText is still an array after extraction fix');
                 return false;
             }
             
@@ -360,6 +360,10 @@ class ClaudeAPIClient {
     extractTextFromResponse(response) {
         if (Array.isArray(response) && response.length > 0) {
             const first = response[0];
+            // Handle [{type:'text', text:'...'}] - Puter's Claude response format
+            if (first && first.type === 'text' && typeof first.text === 'string') {
+                return first.text;
+            }
             // Handle [{role:'assistant', content:'...'}]
             if (first && typeof first.content === 'string') {
                 return first.content;
@@ -370,6 +374,7 @@ class ClaudeAPIClient {
             }
             // Fallback: concatenate any stringifiable bits we can find
             return response.map(r => {
+                if (r.type === 'text' && typeof r.text === 'string') return r.text;
                 if (typeof r.content === 'string') return r.content;
                 if (r.message && typeof r.message.content === 'string') return r.message.content;
                 return '';
@@ -378,6 +383,12 @@ class ClaudeAPIClient {
             return response;
         } else if (response && typeof response.content === 'string') {
             return response.content;
+        } else if (response && response.message && Array.isArray(response.message.content)) {
+            // Handle response.message.content = [{type:'text', text:'...'}]
+            const content = response.message.content;
+            if (content.length > 0 && content[0].type === 'text' && typeof content[0].text === 'string') {
+                return content[0].text;
+            }
         } else if (response && response.message && typeof response.message.content === 'string') {
             return response.message.content;
         } else if (response && typeof response.message === 'string') {
