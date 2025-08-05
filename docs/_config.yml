@@ -1,26 +1,23 @@
-# GitHub Pages Configuration
+# GitHub Pages Configuration for Static Site
 title: "Claude-Powered Blog Workflow"
 description: "Transform any topic into a publication-ready blog post with AI agents"
 url: "https://sealionryan.github.io"
 baseurl: "/blog-writer"
 
-# Theme
-theme: minima
+# Disable Jekyll processing for static HTML site
+markdown: kramdown
+highlighter: rouge
 
-# Plugins
-plugins:
-  - jekyll-feed
-  - jekyll-sitemap
-
-# Exclude files from processing
-exclude:
-  - README.md
-  - "*.md"
-
-# Include specific files
+# Include all static files
 include:
   - index.html
   - styles.css
   - app.js
   - agents/
   - utils/
+  - test.html
+
+# Exclude Jekyll-specific files
+exclude:
+  - README.md
+  - AGENT_HANDOFF_README.md
