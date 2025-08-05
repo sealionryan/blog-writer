@@ -37,25 +37,61 @@ class ClaudeAPIClient {
      */
     async initialize() {
         try {
+            // Wait for Puter to be available if it's still loading
+            let attempts = 0;
+            const maxAttempts = 30; // 3 seconds max wait
+            
+            while (typeof puter === 'undefined' && attempts < maxAttempts) {
+                await this.sleep(100);
+                attempts++;
+            }
+            
             if (typeof puter === 'undefined') {
-                throw new Error('Puter.js is not loaded. Please make sure the script is included.');
+                throw new Error('Puter.js failed to load. Please check your internet connection and try again.');
             }
 
-            // Test connection with a simple request
-            const testResponse = await this.makeRequest([
-                { role: 'user', content: 'Hello! Please respond with just "OK" to confirm connection.' }
-            ], { max_tokens: 10 });
+            // Initialize Puter if it has an init method
+            if (typeof puter.init === 'function') {
+                await puter.init();
+            }
 
-            if (testResponse && testResponse.trim().includes('OK')) {
+            // Test connection with a simple request using direct API call
+            console.log('Testing Claude API connection...');
+            const testResponse = await this.testConnection();
+
+            if (testResponse) {
                 this.initialized = true;
                 console.log('Claude API client initialized successfully');
                 return true;
             } else {
-                throw new Error('Connection test failed');
+                throw new Error('Connection test failed - unable to reach Claude API');
             }
         } catch (error) {
             console.error('Failed to initialize Claude API client:', error);
             this.initialized = false;
+            return false;
+        }
+    }
+
+    /**
+     * Test the connection to Claude API
+     */
+    async testConnection() {
+        try {
+            const testMessages = [
+                { role: 'user', content: 'Please respond with just "OK" to confirm connection.' }
+            ];
+            
+            const response = await puter.ai.chat(testMessages, {
+                model: this.defaultModel,
+                max_tokens: 20,
+                temperature: 0
+            });
+            
+            console.log('Connection test response:', response);
+            return response && (response.includes('OK') || response.includes('ok') || response.length > 0);
+        } catch (error) {
+            console.error('Connection test failed:', error);
             return false;
         }
     }

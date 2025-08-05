@@ -41,12 +41,25 @@ class BlogWorkflowApp {
             // Set up workflow event handlers
             this.setupWorkflowHandlers();
             
-            // Initialize API client
+            // Show initialization status
+            this.elements.initializationStatus.classList.remove('hidden');
+            this.elements.submitBtn.disabled = true;
+            
+            // Initialize API client with better error handling
+            console.log('Initializing API client...');
             const apiInitialized = await this.apiClient.initialize();
+            
+            // Hide initialization status
+            this.elements.initializationStatus.classList.add('hidden');
+            
             if (!apiInitialized) {
-                this.showError('Failed to initialize AI connection. Please refresh and try again.');
+                this.elements.submitBtn.disabled = false;
+                this.showError('Failed to initialize AI connection. This could be due to:\n\n• Network connectivity issues\n• Puter.js service unavailable\n• Browser blocking third-party scripts\n\nPlease check your internet connection and try refreshing the page.');
                 return;
             }
+            
+            this.elements.submitBtn.disabled = false;
+            console.log('API client initialized successfully');
             
             console.log('App initialized successfully');
             
@@ -69,6 +82,7 @@ class BlogWorkflowApp {
             allowWebInput: document.getElementById('allow-web'),
             submitBtn: document.getElementById('start-workflow'),
             validationMessage: document.getElementById('validation-message'),
+            initializationStatus: document.getElementById('initialization-status'),
             
             // Section elements
             inputSection: document.querySelector('.input-section'),
@@ -187,6 +201,16 @@ class BlogWorkflowApp {
                 return;
             }
 
+            // Ensure API client is initialized
+            if (!this.apiClient.initialized) {
+                console.log('API client not initialized, attempting to initialize...');
+                const initSuccess = await this.apiClient.initialize();
+                if (!initSuccess) {
+                    this.showError('API connection failed. Please refresh the page and try again.');
+                    return;
+                }
+            }
+
             // Collect inputs
             const inputs = {
                 title: this.elements.titleInput.value.trim(),
@@ -194,6 +218,8 @@ class BlogWorkflowApp {
                 context: this.elements.contextInput.value.trim(),
                 allowWeb: this.elements.allowWebInput.checked
             };
+
+            console.log('Starting workflow with inputs:', inputs);
 
             // Start processing
             this.isProcessing = true;
@@ -208,7 +234,7 @@ class BlogWorkflowApp {
 
         } catch (error) {
             console.error('Failed to start workflow:', error);
-            this.showError(`Failed to start workflow: ${error.message}`);
+            this.showError(`Failed to start workflow: ${error.message}\n\nPlease try refreshing the page or check the browser console for more details.`);
             this.resetUI();
         }
     }
@@ -609,11 +635,16 @@ class BlogWorkflowApp {
     }
 
     showError(message) {
-        this.elements.errorMessage.textContent = message;
+        // Handle multi-line error messages
+        this.elements.errorMessage.innerHTML = message.replace(/\n/g, '<br>');
         this.elements.progressSection.classList.add('hidden');
         this.elements.resultsSection.classList.add('hidden');
+        this.elements.inputSection.classList.add('hidden');
         this.elements.errorSection.classList.remove('hidden');
         this.resetUI();
+        
+        // Scroll to error section
+        this.elements.errorSection.scrollIntoView({ behavior: 'smooth' });
     }
 
     clearPreviousResults() {
