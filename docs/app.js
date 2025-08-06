@@ -67,6 +67,9 @@ class BlogWorkflowApp {
                 
                 if (error.message.includes('API key required')) {
                     // Expected behavior - show API key prompt
+                    console.log('API key required, showing prompt...');
+                    this.elements.inputSection.classList.remove('hidden');
+                    this.elements.errorSection.classList.add('hidden');
                     this.elements.apiKeyPrompt.classList.remove('hidden');
                     this.elements.submitBtn.disabled = true;
                     this.elements.apiKeyInput.focus();
@@ -87,7 +90,11 @@ class BlogWorkflowApp {
         } catch (error) {
             console.error('Failed to initialize app:', error);
             this.elements.initializationStatus.classList.add('hidden');
-            this.showError('Application failed to start. Please refresh the page.');
+            
+            // Don't show error for expected API key requirement
+            if (!error.message.includes('API key required')) {
+                this.showError('Application failed to start. Please refresh the page.');
+            }
         }
     }
 
