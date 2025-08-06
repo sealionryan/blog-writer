@@ -156,12 +156,29 @@ class ClaudeAPIClient {
      * Make a direct API call to Anthropic (with CORS proxy fallback)
      */
     async makeDirectApiCall(messages, options = {}) {
+        // Separate system message from user/assistant messages
+        let systemMessage = '';
+        const userMessages = [];
+        
+        for (const message of messages) {
+            if (message.role === 'system') {
+                systemMessage = message.content;
+            } else {
+                userMessages.push(message);
+            }
+        }
+        
         const requestBody = {
             model: options.model || this.defaultModel,
             max_tokens: options.max_tokens || 4000,
             temperature: options.temperature || 0.7,
-            messages: messages
+            messages: userMessages
         };
+        
+        // Add system message as top-level parameter if present
+        if (systemMessage) {
+            requestBody.system = systemMessage;
+        }
 
         let lastError;
         

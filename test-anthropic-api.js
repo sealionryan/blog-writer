@@ -37,10 +37,11 @@ async function testApiCall(model, testName) {
                 model: model,
                 max_tokens: 50,
                 temperature: 0.3,
+                system: `You are testing ${testName} for Vegas Improv Power.`,
                 messages: [
                     {
                         role: 'user',
-                        content: `You are testing ${testName} for Vegas Improv Power. Please respond with "✅ ${testName} working correctly" to confirm the model is functioning.`
+                        content: `Please respond with "✅ ${testName} working correctly" to confirm the model is functioning.`
                     }
                 ]
             })
