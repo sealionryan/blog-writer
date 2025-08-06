@@ -1,0 +1,26 @@
+{
+  "name": "blog-writer",
+  "version": "1.0.0",
+  "description": "An automated, multi-agent system that transforms a single keyword into a fully-written, SEO-optimized Markdown article. Built on the [Claude Sub-Agents](https://github.com/webdevtoday/claude-agents) framework with a master-sub-agent architecture.",
+  "main": "debug-simple.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sealionryan/blog-writer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sealionryan/blog-writer/issues"
+  },
+  "homepage": "https://github.com/sealionryan/blog-writer#readme",
+  "dependencies": {
+    "dotenv": "^17.2.1"
+  }
+}

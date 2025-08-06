@@ -64,11 +64,12 @@ class BlogWorkflowApp {
                 this.elements.initializationStatus.classList.add('hidden');
                 this.elements.submitBtn.disabled = false;
                 
-                if (error.message.includes('authentication')) {
-                    this.elements.authPrompt.classList.remove('hidden');
+                if (error.message.includes('API key required')) {
+                    this.elements.apiKeyPrompt.classList.remove('hidden');
                     this.elements.submitBtn.disabled = true;
+                    this.elements.apiKeyInput.focus();
                 } else {
-                    this.showError(`Failed to initialize AI connection: ${error.message}\n\nPlease refresh the page and try again.`);
+                    this.showError(`Failed to initialize AI connection: ${error.message}\n\nPlease check your API key and try again.`);
                 }
                 return;
             }
@@ -99,6 +100,9 @@ class BlogWorkflowApp {
             submitBtn: document.getElementById('start-workflow'),
             validationMessage: document.getElementById('validation-message'),
             initializationStatus: document.getElementById('initialization-status'),
+            apiKeyPrompt: document.getElementById('api-key-prompt'),
+            apiKeyInput: document.getElementById('api-key'),
+            rememberKeyInput: document.getElementById('remember-key'),
             
             // Section elements
             inputSection: document.querySelector('.input-section'),
@@ -150,8 +154,16 @@ class BlogWorkflowApp {
         this.elements.backToStart.addEventListener('click', () => this.resetToStart());
 
         // Input validation
-        [this.elements.titleInput, this.elements.keywordsInput, this.elements.contextInput].forEach(input => {
+        [this.elements.titleInput, this.elements.keywordsInput, this.elements.contextInput, this.elements.apiKeyInput].forEach(input => {
             input.addEventListener('input', () => this.validateInputs());
+        });
+
+        // API key input handling
+        this.elements.apiKeyInput.addEventListener('input', () => {
+            if (this.elements.apiKeyInput.value.trim()) {
+                this.elements.apiKeyPrompt.classList.add('hidden');
+                this.elements.submitBtn.disabled = false;
+            }
         });
     }
 
@@ -259,30 +271,30 @@ class BlogWorkflowApp {
      * Validate form inputs
      */
     /**
-     * Handle sign-in button click
+     * Handle API key validation and retry
      */
-    async handleSignIn() {
+    async handleApiKeyRetry() {
         try {
-            this.elements.authPrompt.classList.add('hidden');
+            this.elements.apiKeyPrompt.classList.add('hidden');
             this.elements.initializationStatus.classList.remove('hidden');
             
-            // Reinitialize API client with authentication
+            // Reinitialize API client with new key
             const apiInitialized = await this.apiClient.initialize();
             
             this.elements.initializationStatus.classList.add('hidden');
             
             if (apiInitialized) {
                 this.elements.submitBtn.disabled = false;
-                console.log('Authentication successful, API client ready');
+                console.log('API key validated, client ready');
             } else {
-                this.elements.authPrompt.classList.remove('hidden');
-                this.showError('Authentication failed. Please try again.');
+                this.elements.apiKeyPrompt.classList.remove('hidden');
+                this.showError('API key validation failed. Please check your key and try again.');
             }
         } catch (error) {
-            console.error('Sign-in failed:', error);
+            console.error('API key validation failed:', error);
             this.elements.initializationStatus.classList.add('hidden');
-            this.elements.authPrompt.classList.remove('hidden');
-            this.showError('Authentication failed. Please try again.');
+            this.elements.apiKeyPrompt.classList.remove('hidden');
+            this.showError('API key validation failed. Please check your key and try again.');
         }
     }
 
@@ -293,8 +305,25 @@ class BlogWorkflowApp {
         const title = this.elements.titleInput.value.trim();
         const keywords = this.elements.keywordsInput.value.trim();
         const context = this.elements.contextInput.value.trim();
+        const apiKey = this.elements.apiKeyInput.value.trim();
 
-        // Check if at least one field is provided
+        // Check if API key is provided
+        if (!apiKey) {
+            return {
+                valid: false,
+                message: 'Please enter your Anthropic API key.'
+            };
+        }
+
+        // Validate API key format
+        if (!apiKey.startsWith('sk-ant-')) {
+            return {
+                valid: false,
+                message: 'API key should start with "sk-ant-". Please check your key.'
+            };
+        }
+
+        // Check if at least one content field is provided
         if (!title && !keywords && !context) {
             return {
                 valid: false,
