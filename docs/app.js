@@ -55,23 +55,28 @@ class BlogWorkflowApp {
                 this.elements.initializationStatus.classList.add('hidden');
                 
                 if (!apiInitialized) {
-                    this.elements.submitBtn.disabled = false;
-                    this.showError('Failed to initialize AI connection. This could be due to:\n\n• Network connectivity issues\n• Puter.js service unavailable\n• Browser blocking third-party scripts\n• Authentication was cancelled\n\nPlease check your internet connection and try refreshing the page.');
+                    // This shouldn't happen with the new implementation, but handle it
+                    this.elements.apiKeyPrompt.classList.remove('hidden');
+                    this.elements.submitBtn.disabled = true;
+                    this.elements.apiKeyInput.focus();
                     return;
                 }
             } catch (error) {
                 // Hide initialization status
                 this.elements.initializationStatus.classList.add('hidden');
-                this.elements.submitBtn.disabled = false;
                 
                 if (error.message.includes('API key required')) {
+                    // Expected behavior - show API key prompt
                     this.elements.apiKeyPrompt.classList.remove('hidden');
                     this.elements.submitBtn.disabled = true;
                     this.elements.apiKeyInput.focus();
+                    return;
                 } else {
+                    // Unexpected error - show error message
+                    this.elements.submitBtn.disabled = false;
                     this.showError(`Failed to initialize AI connection: ${error.message}\n\nPlease check your API key and try again.`);
+                    return;
                 }
-                return;
             }
             
             this.elements.submitBtn.disabled = false;
