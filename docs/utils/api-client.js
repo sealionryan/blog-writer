@@ -31,8 +31,14 @@ class ClaudeAPIClient {
         // Model capabilities tracking
         this.modelCapabilities = {};
         
-        // API endpoint
-        this.apiEndpoint = 'https://api.anthropic.com/v1/messages';
+        // API endpoint options for CORS compatibility
+        this.corsProxies = [
+            'https://api.allorigins.win/raw?url=',
+            'https://cors-anywhere.herokuapp.com/',
+            'https://corsproxy.io/?'
+        ];
+        this.directEndpoint = 'https://api.anthropic.com/v1/messages';
+        this.currentProxyIndex = 0;
         this.apiVersion = '2023-06-01';
     }
 
@@ -137,7 +143,17 @@ class ClaudeAPIClient {
     }
 
     /**
-     * Make a direct API call to Anthropic
+     * Get current API endpoint (direct or via proxy)
+     */
+    getCurrentEndpoint() {
+        if (this.currentProxyIndex >= 0 && this.currentProxyIndex < this.corsProxies.length) {
+            return this.corsProxies[this.currentProxyIndex] + encodeURIComponent(this.directEndpoint);
+        }
+        return this.directEndpoint;
+    }
+
+    /**
+     * Make a direct API call to Anthropic (with CORS proxy fallback)
      */
     async makeDirectApiCall(messages, options = {}) {
         const requestBody = {
@@ -147,37 +163,63 @@ class ClaudeAPIClient {
             messages: messages
         };
 
-        const response = await fetch(this.apiEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': this.apiKey,
-                'anthropic-version': this.apiVersion
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
-            
+        let lastError;
+        
+        // Try direct call first, then proxies
+        for (let attempt = -1; attempt < this.corsProxies.length; attempt++) {
             try {
-                const errorData = JSON.parse(errorText);
-                if (errorData.error && errorData.error.message) {
-                    errorMessage = errorData.error.message;
-                }
-            } catch (e) {
-                // Use the raw error text if JSON parsing fails
-                if (errorText) {
-                    errorMessage += ` - ${errorText}`;
-                }
-            }
-            
-            throw new Error(errorMessage);
-        }
+                this.currentProxyIndex = attempt;
+                const endpoint = this.getCurrentEndpoint();
+                
+                console.log(`Attempting API call via: ${attempt === -1 ? 'direct' : 'proxy ' + attempt}`);
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': this.apiKey,
+                        'anthropic-version': this.apiVersion,
+                        ...(attempt === -1 ? { 'anthropic-dangerous-direct-browser-access': 'true' } : {})
+                    },
+                    body: JSON.stringify(requestBody)
+                });
 
-        const data = await response.json();
-        return data;
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
+                    
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        if (errorData.error && errorData.error.message) {
+                            errorMessage = errorData.error.message;
+                        }
+                    } catch (e) {
+                        if (errorText) {
+                            errorMessage += ` - ${errorText}`;
+                        }
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+                console.log(`API call successful via: ${attempt === -1 ? 'direct' : 'proxy ' + attempt}`);
+                return data;
+                
+            } catch (error) {
+                lastError = error;
+                console.warn(`Attempt ${attempt === -1 ? 'direct' : 'proxy ' + attempt} failed:`, error.message);
+                
+                // If it's a CORS error, try next proxy
+                if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+                    continue;
+                }
+                // If it's an API error (auth, rate limit, etc.), don't try other proxies
+                throw error;
+            }
+        }
+        
+        throw new Error(`All connection attempts failed. Last error: ${lastError?.message || 'Unknown error'}`);
     }
 
     /**
