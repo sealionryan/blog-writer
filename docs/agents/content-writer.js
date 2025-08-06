@@ -11,7 +11,7 @@ class ContentWriterAgent {
         this.name = 'Blog Content Writer';
         this.role = 'content-writer';
         this.agentType = 'content-writer'; // For model selection
-        this.preferredModel = 'claude-3-5-sonnet-20241022'; // Content production tasks
+        this.preferredModel = 'claude-sonnet-4-20250514'; // Content production tasks
     }
 
     /**

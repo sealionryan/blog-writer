@@ -36,7 +36,7 @@ class OrchestratorAgent {
         this.name = 'Blog Workflow Orchestrator';
         this.role = 'orchestrator';
         this.agentType = 'orchestrator'; // For model selection
-        this.preferredModel = 'claude-3-opus-20240229'; // High-reasoning tasks
+        this.preferredModel = 'claude-opus-4-1-20250805'; // High-reasoning tasks
     }
 
     /**

@@ -9,7 +9,7 @@ class ReviewerAgent {
         this.name = 'Blog Reviewer';
         this.role = 'reviewer';
         this.agentType = 'reviewer'; // For model selection
-        this.preferredModel = 'claude-3-opus-20240229'; // High-reasoning: Quality assessment
+        this.preferredModel = 'claude-opus-4-1-20250805'; // High-reasoning: Quality assessment
     }
 
     /**

@@ -10,7 +10,7 @@ class ContentPlannerAgent {
         this.name = 'Content Planning Assistant';
         this.role = 'content-planner';
         this.agentType = 'content-planner'; // For model selection
-        this.preferredModel = 'claude-3-opus-20240229'; // High-reasoning: Complex input analysis
+        this.preferredModel = 'claude-opus-4-1-20250805'; // High-reasoning: Complex input analysis
     }
 
     /**

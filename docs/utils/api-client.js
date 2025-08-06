@@ -9,22 +9,22 @@ class ClaudeAPIClient {
         this.rateLimitDelay = 1000; // 1 second between requests
         this.lastRequestTime = 0;
         this.maxRetries = 3;
-        this.defaultModel = 'claude-sonnet-4'; // Default to Sonnet for balanced performance
+        this.defaultModel = 'claude-sonnet-4-20250514'; // Default to Sonnet for balanced performance
         
         // Intelligent model selection for Puter.js using correct model names
         this.modelConfig = {
-            'content-planner': 'claude-opus-4',    // High-reasoning: Complex input analysis
-            'orchestrator': 'claude-opus-4',       // High-reasoning: Strategic planning
-            'outline-writer': 'claude-opus-4',     // High-reasoning: Content structuring
-            'reviewer': 'claude-opus-4',           // High-reasoning: Quality assessment
-            'brainstormer': 'claude-sonnet-4',     // Standard: Creative generation
-            'content-writer': 'claude-sonnet-4'    // Standard: Content production
+            'content-planner': 'claude-opus-4-1-20250805',    // High-reasoning: Complex input analysis
+            'orchestrator': 'claude-opus-4-1-20250805',       // High-reasoning: Strategic planning
+            'outline-writer': 'claude-opus-4-1-20250805',     // High-reasoning: Content structuring
+            'reviewer': 'claude-opus-4-1-20250805',           // High-reasoning: Quality assessment
+            'brainstormer': 'claude-sonnet-4-20250514',     // Standard: Creative generation
+            'content-writer': 'claude-sonnet-4-20250514'    // Standard: Content production
         };
         
         // Fallback model hierarchy for Puter.js
         this.fallbackModels = [
-            'claude-sonnet-4',
-            'claude-opus-4'
+            'claude-sonnet-4-20250514',
+            'claude-opus-4-1-20250805'
         ];
         
         // Model capabilities tracking

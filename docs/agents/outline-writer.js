@@ -10,7 +10,7 @@ class OutlineWriterAgent {
         this.name = 'Blog Outline Writer';
         this.role = 'outline-writer';
         this.agentType = 'outline-writer'; // For model selection
-        this.preferredModel = 'claude-3-opus-20240229'; // High-reasoning: Content structuring
+        this.preferredModel = 'claude-opus-4-1-20250805'; // High-reasoning: Content structuring
     }
 
     /**

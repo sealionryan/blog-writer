@@ -9,7 +9,7 @@ class BrainstormerAgent {
         this.name = 'Blog Brainstormer';
         this.role = 'brainstormer';
         this.agentType = 'brainstormer'; // For model selection
-        this.preferredModel = 'claude-3-5-sonnet-20241022'; // Creative generation tasks
+        this.preferredModel = 'claude-sonnet-4-20250514'; // Creative generation tasks
     }
 
     /**
